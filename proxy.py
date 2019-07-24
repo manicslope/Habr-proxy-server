@@ -23,7 +23,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-        # source_code = requests.get("https://habr.com" + self.path).text
         source_code = requests.get("https://habr.com" + self.path).text
 
         # To stay on proxy server address
@@ -74,11 +73,6 @@ def run():
     server_address = (SERVER_ADDRESS, SERVER_PORT)
     httpd = HTTPServer(server_address, HTTPServer_RequestHandler)
     httpd.serve_forever()
-
-
-# url = "https://habr.com/ru/company/yandex/blog/258673/"
-# source_code = requests.get(url).content
-# replace_urls(source_code)
 
 
 if __name__ == "__main__":
