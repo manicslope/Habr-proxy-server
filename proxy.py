@@ -38,7 +38,7 @@ def is_text_visible(element):
     """
     Checks if text visible on web page
     """
-    parents = ['style', 'script', 'head', 'title', 'meta', '[document]']
+    parents = ['style', 'script', 'head', 'title', 'meta']
     if element.parent.name in parents:
         return False
     if isinstance(element, Comment):
@@ -55,15 +55,22 @@ def add_tm(source_code):
         modified_code (str): Modified source code with added trademarks
     """
     modified_code = str()
+    in_script = False
     for line in source_code.split('\n'):
+        # Escape js scripts
+        if "<script" in line:
+            in_script = True
+        if "</script" in line:
+            in_script = False
         soup = BeautifulSoup(line, 'html.parser')
         text = soup.findAll(text=True)
         visible_text = filter(is_text_visible, text)
-        for sentence in visible_text:
-            for word in re.findall(r'\b\w{6}\b', str(sentence)):
-                line = line.replace(word, word+"™")
-            # In case if there is a sequence of tm
-            line = re.sub('™+', '™', line)
+        if not in_script:
+            for sentence in visible_text:
+                for word in re.findall(r'\b\w{6}\b', str(sentence)):
+                    line = line.replace(word, word+"™")
+                # In case if there is a sequence of tm
+                line = re.sub('™+', '™', line)
         modified_code += str(line) + "\n"
     return modified_code
 
