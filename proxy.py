@@ -14,6 +14,8 @@ SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 8081
 SERVER_URL = "http://%s:%s" % (SERVER_ADDRESS, SERVER_PORT)
 
+SVG_URL = "https://habr.com/images/1564133473/common-svg-sprite.svg"
+
 
 class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
@@ -26,8 +28,10 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
         source_code = requests.get("https://habr.com" + self.path).text
 
         # To stay on proxy server address
-        source_code = source_code.replace("https://habr.com", SERVER_URL)
-        source_code = source_code.replace("http://habrahabr.ru", SERVER_URL)
+        source_code = source_code.replace(' href="https://habr.com',
+                                          ' href="'+SERVER_URL)
+        source_code = source_code.replace(' href="http://habrahabr.ru',
+                                          ' href="'+SERVER_URL)
 
         source_code = add_tm(source_code)
         self.wfile.write(bytes(source_code, "utf-8"))
@@ -56,6 +60,7 @@ def add_tm(source_code):
     """
     modified_code = str()
     in_script = False
+    in_style = False
     for line in source_code.split('\n'):
         # Escape js scripts
         if "<script" in line:
@@ -65,12 +70,20 @@ def add_tm(source_code):
         soup = BeautifulSoup(line, 'html.parser')
         text = soup.findAll(text=True)
         visible_text = filter(is_text_visible, text)
-        if not in_script:
+        if not in_script and not in_style:
             for sentence in visible_text:
                 for word in re.findall(r'\b\w{6}\b', str(sentence)):
                     line = line.replace(word, word+"™")
                 # In case if there is a sequence of tm
-                line = re.sub('™+', '™', line)
+                line = re.sub(r'™+', r'™', line)
+                # If substring was replaced
+                line = re.sub(r'(™)([a-zA-Zа-яА-Я])', r'\g<2>', line)
+        # Put svg file for local use in source_code
+        if "<body" in line:
+            svg_file = requests.get(SVG_URL).text
+            line = line + "\n" + svg_file
+        if "common-svg-sprite.svg" in line:
+            line = line.replace(SVG_URL, "")
         modified_code += str(line) + "\n"
     return modified_code
 

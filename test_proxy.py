@@ -6,7 +6,7 @@ class Test(unittest.TestCase):
 
     def test_add_tm(self):
         source_code = "<div>Example: normal, dog, kitten,\
-                         tag, cheese</div>"
+                         tag, cheese, kittens</div>"
         modified_code = "<div>Example: normal™, dog, kitten™,\
-                         tag, cheese™</div>\n"
+                         tag, cheese™, kittens</div>\n"
         self.assertEqual(add_tm(source_code), modified_code)
