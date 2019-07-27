@@ -62,11 +62,15 @@ def add_tm(source_code):
     in_script = False
     in_style = False
     for line in source_code.split('\n'):
-        # Escape js scripts
+        # Escape js scripts and style
         if "<script" in line:
             in_script = True
         if "</script" in line:
             in_script = False
+        if "<style" in line:
+            in_style = True
+        if "</style" in line:
+            in_style = False
         soup = BeautifulSoup(line, 'html.parser')
         text = soup.findAll(text=True)
         visible_text = filter(is_text_visible, text)
