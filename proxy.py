@@ -24,7 +24,6 @@ class HTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-
         source_code = requests.get("https://habr.com" + self.path).text
 
         # To stay on proxy server address
@@ -71,6 +70,7 @@ def add_tm(source_code):
             in_style = True
         if "</style" in line:
             in_style = False
+
         soup = BeautifulSoup(line, 'html.parser')
         text = soup.findAll(text=True)
         visible_text = filter(is_text_visible, text)
@@ -82,12 +82,17 @@ def add_tm(source_code):
                 line = re.sub(r'™+', r'™', line)
                 # If substring was replaced
                 line = re.sub(r'(™)([a-zA-Zа-яА-Я])', r'\g<2>', line)
+
+        if in_style:
+            # Works better, but relays on web server
+            line = line.replace("/fonts/0/FiraSans/", "http://95.213.203.189/")
         # Put svg file for local use in source_code
         if "<body" in line:
             svg_file = requests.get(SVG_URL).text
             line = line + "\n" + svg_file
         if "common-svg-sprite.svg" in line:
-            line = line.replace(SVG_URL, "")
+            line = re.sub(r'https://habr.com/images/\d*/common-svg-sprite.svg',
+                          '', line)
         modified_code += str(line) + "\n"
     return modified_code
 
